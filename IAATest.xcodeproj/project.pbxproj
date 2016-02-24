@@ -20,26 +20,14 @@
 		4C816DDF1A7A08E800DD0C84 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C816DDE1A7A08E800DD0C84 /* main.m */; };
 		4C816DE21A7A08E800DD0C84 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C816DE11A7A08E800DD0C84 /* AppDelegate.m */; };
 		4C816DE51A7A08E800DD0C84 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C816DE41A7A08E800DD0C84 /* ViewController.m */; };
-		4C816E331A7A093800DD0C84 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C816E321A7A093800DD0C84 /* main.m */; };
-		4C816E361A7A093800DD0C84 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C816E351A7A093800DD0C84 /* AppDelegate.m */; };
-		4C816E391A7A093800DD0C84 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C816E381A7A093800DD0C84 /* ViewController.m */; };
 		4C816E581A7A0A0000DD0C84 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4C816E541A7A0A0000DD0C84 /* Main.storyboard */; };
 		4C816E631A7A0AE700DD0C84 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D906C18176195000BED1C /* AVFoundation.framework */; };
-		4C816E641A7A0AE700DD0C84 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D906C18176195000BED1C /* AVFoundation.framework */; };
 		4C816E651A7A0AE900DD0C84 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D906A18176190000BED1C /* AudioToolbox.framework */; };
-		4C816E661A7A0AEA00DD0C84 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D906A18176190000BED1C /* AudioToolbox.framework */; };
 		4C816E671A7A0AEE00DD0C84 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D903218176021000BED1C /* Foundation.framework */; };
 		4C816E681A7A0AEE00DD0C84 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D903418176021000BED1C /* CoreGraphics.framework */; };
 		4C816E691A7A0AEE00DD0C84 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D903618176021000BED1C /* UIKit.framework */; };
-		4C816E6A1A7A0AEF00DD0C84 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D903218176021000BED1C /* Foundation.framework */; };
-		4C816E6B1A7A0AEF00DD0C84 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D903418176021000BED1C /* CoreGraphics.framework */; };
-		4C816E6C1A7A0AEF00DD0C84 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D903618176021000BED1C /* UIKit.framework */; };
-		4C816E731A7A258300DD0C84 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4C816E711A7A258300DD0C84 /* InfoPlist.strings */; };
 		4C816E761A7A279600DD0C84 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4C816E751A7A279600DD0C84 /* Images.xcassets */; };
 		4C816E781A7A27A100DD0C84 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4C816E771A7A27A100DD0C84 /* Images.xcassets */; };
-		4C816E7B1A7A27F400DD0C84 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4C816E791A7A27F400DD0C84 /* InfoPlist.strings */; };
-		4C816E821A7A289400DD0C84 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4C816E811A7A289400DD0C84 /* Images.xcassets */; };
-		4C816E861A7A2AA800DD0C84 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4C816E841A7A2AA800DD0C84 /* Main.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,24 +52,13 @@
 		4C816DE11A7A08E800DD0C84 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		4C816DE31A7A08E800DD0C84 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		4C816DE41A7A08E800DD0C84 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		4C816E2E1A7A093800DD0C84 /* IAATestEffect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IAATestEffect.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4C816E321A7A093800DD0C84 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		4C816E341A7A093800DD0C84 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		4C816E351A7A093800DD0C84 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		4C816E371A7A093800DD0C84 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		4C816E381A7A093800DD0C84 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		4C816E551A7A0A0000DD0C84 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = "IAATest Generator/Base.lproj/Main.storyboard"; sourceTree = SOURCE_ROOT; };
 		4C816E5A1A7A0A1400DD0C84 /* IAATestGenerator-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "IAATestGenerator-Info.plist"; path = "IAATest Generator/IAATestGenerator-Info.plist"; sourceTree = SOURCE_ROOT; };
-		4C816E621A7A0A9B00DD0C84 /* IAATestEffect-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "IAATestEffect-Info.plist"; path = "IAATest Effect/IAATestEffect-Info.plist"; sourceTree = SOURCE_ROOT; };
 		4C816E6F1A7A251F00DD0C84 /* IAATestHost.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = IAATestHost.entitlements; path = "IAATest Host/IAATestHost.entitlements"; sourceTree = SOURCE_ROOT; };
 		4C816E721A7A258300DD0C84 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "IAATest Generator/en.lproj/InfoPlist.strings"; sourceTree = SOURCE_ROOT; };
 		4C816E741A7A258A00DD0C84 /* IAATestGenerator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = IAATestGenerator.entitlements; path = "IAATest Generator/IAATestGenerator.entitlements"; sourceTree = SOURCE_ROOT; };
 		4C816E751A7A279600DD0C84 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		4C816E771A7A27A100DD0C84 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		4C816E7A1A7A27F400DD0C84 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "IAATest Generator/en.lproj/InfoPlist.strings"; sourceTree = SOURCE_ROOT; };
-		4C816E811A7A289400DD0C84 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		4C816E831A7A294200DD0C84 /* IAATestEffect.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = IAATestEffect.entitlements; sourceTree = "<group>"; };
-		4C816E851A7A2AA800DD0C84 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,18 +86,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4C816E2B1A7A093800DD0C84 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C816E6B1A7A0AEF00DD0C84 /* CoreGraphics.framework in Frameworks */,
-				4C816E641A7A0AE700DD0C84 /* AVFoundation.framework in Frameworks */,
-				4C816E6A1A7A0AEF00DD0C84 /* Foundation.framework in Frameworks */,
-				4C816E661A7A0AEA00DD0C84 /* AudioToolbox.framework in Frameworks */,
-				4C816E6C1A7A0AEF00DD0C84 /* UIKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -129,7 +94,6 @@
 			children = (
 				4C5D903818176021000BED1C /* IAATest Host */,
 				4C816DDB1A7A08E800DD0C84 /* IAATest Generator */,
-				4C816E2F1A7A093800DD0C84 /* IAATest Effect */,
 				4C5D903118176021000BED1C /* Frameworks */,
 				4C5D903018176021000BED1C /* Products */,
 			);
@@ -140,7 +104,6 @@
 			children = (
 				4C5D902F18176021000BED1C /* IAATestHost.app */,
 				4C816DDA1A7A08E800DD0C84 /* IAATestGenerator.app */,
-				4C816E2E1A7A093800DD0C84 /* IAATestEffect.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -208,31 +171,6 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		4C816E2F1A7A093800DD0C84 /* IAATest Effect */ = {
-			isa = PBXGroup;
-			children = (
-				4C816E341A7A093800DD0C84 /* AppDelegate.h */,
-				4C816E351A7A093800DD0C84 /* AppDelegate.m */,
-				4C816E371A7A093800DD0C84 /* ViewController.h */,
-				4C816E381A7A093800DD0C84 /* ViewController.m */,
-				4C816E841A7A2AA800DD0C84 /* Main.storyboard */,
-				4C816E811A7A289400DD0C84 /* Images.xcassets */,
-				4C816E301A7A093800DD0C84 /* Supporting Files */,
-			);
-			path = "IAATest Effect";
-			sourceTree = "<group>";
-		};
-		4C816E301A7A093800DD0C84 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				4C816E831A7A294200DD0C84 /* IAATestEffect.entitlements */,
-				4C816E621A7A0A9B00DD0C84 /* IAATestEffect-Info.plist */,
-				4C816E791A7A27F400DD0C84 /* InfoPlist.strings */,
-				4C816E321A7A093800DD0C84 /* main.m */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -270,30 +208,13 @@
 			productReference = 4C816DDA1A7A08E800DD0C84 /* IAATestGenerator.app */;
 			productType = "com.apple.product-type.application";
 		};
-		4C816E2D1A7A093800DD0C84 /* IAATestEffect */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4C816E4E1A7A093900DD0C84 /* Build configuration list for PBXNativeTarget "IAATestEffect" */;
-			buildPhases = (
-				4C816E2A1A7A093800DD0C84 /* Sources */,
-				4C816E2B1A7A093800DD0C84 /* Frameworks */,
-				4C816E2C1A7A093800DD0C84 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = IAATestEffect;
-			productName = IAATestEffect;
-			productReference = 4C816E2E1A7A093800DD0C84 /* IAATestEffect.app */;
-			productType = "com.apple.product-type.application";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		4C5D902718176021000BED1C /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = "A Tasty Pixel";
 				TargetAttributes = {
 					4C5D902E18176021000BED1C = {
@@ -308,10 +229,6 @@
 						};
 					};
 					4C816DD91A7A08E800DD0C84 = {
-						CreatedOnToolsVersion = 6.1.1;
-						DevelopmentTeam = X925S83LF5;
-					};
-					4C816E2D1A7A093800DD0C84 = {
 						CreatedOnToolsVersion = 6.1.1;
 						DevelopmentTeam = X925S83LF5;
 					};
@@ -332,7 +249,6 @@
 			targets = (
 				4C5D902E18176021000BED1C /* IAATestHost */,
 				4C816DD91A7A08E800DD0C84 /* IAATestGenerator */,
-				4C816E2D1A7A093800DD0C84 /* IAATestEffect */,
 			);
 		};
 /* End PBXProject section */
@@ -357,17 +273,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4C816E2C1A7A093800DD0C84 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C816E7B1A7A27F400DD0C84 /* InfoPlist.strings in Resources */,
-				4C816E731A7A258300DD0C84 /* InfoPlist.strings in Resources */,
-				4C816E821A7A289400DD0C84 /* Images.xcassets in Resources */,
-				4C816E861A7A2AA800DD0C84 /* Main.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -388,16 +293,6 @@
 				4C816DE51A7A08E800DD0C84 /* ViewController.m in Sources */,
 				4C816DE21A7A08E800DD0C84 /* AppDelegate.m in Sources */,
 				4C816DDF1A7A08E800DD0C84 /* main.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4C816E2A1A7A093800DD0C84 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C816E391A7A093800DD0C84 /* ViewController.m in Sources */,
-				4C816E361A7A093800DD0C84 /* AppDelegate.m in Sources */,
-				4C816E331A7A093800DD0C84 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -436,22 +331,6 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		4C816E791A7A27F400DD0C84 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				4C816E7A1A7A27F400DD0C84 /* en */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		4C816E841A7A2AA800DD0C84 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				4C816E851A7A2AA800DD0C84 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -473,6 +352,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -539,6 +419,7 @@
 				GCC_PREFIX_HEADER = "IAATest Host/IAATestHost-Prefix.pch";
 				INFOPLIST_FILE = "IAATest Host/IAATestHost-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.atastypixel.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = IAATestHost;
 				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -558,6 +439,7 @@
 				GCC_PREFIX_HEADER = "IAATest Host/IAATestHost-Prefix.pch";
 				INFOPLIST_FILE = "IAATest Host/IAATestHost-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.atastypixel.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = IAATestHost;
 				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -584,6 +466,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.atastypixel.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -603,48 +486,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		4C816E4F1A7A093900DD0C84 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CODE_SIGN_ENTITLEMENTS = "IAATest Effect/IAATestEffect.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_PREFIX_HEADER = "IAATest Effect/IAATestEffect-Prefix.pch";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				INFOPLIST_FILE = "IAATest Effect/IAATestEffect-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MTL_ENABLE_DEBUG_INFO = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		4C816E501A7A093900DD0C84 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CODE_SIGN_ENTITLEMENTS = "IAATest Effect/IAATestEffect.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_PREFIX_HEADER = "IAATest Effect/IAATestEffect-Prefix.pch";
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				INFOPLIST_FILE = "IAATest Effect/IAATestEffect-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.atastypixel.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -677,14 +519,7 @@
 				4C816DFB1A7A08E800DD0C84 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-		};
-		4C816E4E1A7A093900DD0C84 /* Build configuration list for PBXNativeTarget "IAATestEffect" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4C816E4F1A7A093900DD0C84 /* Debug */,
-				4C816E501A7A093900DD0C84 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

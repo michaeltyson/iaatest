@@ -9,11 +9,6 @@
 #import "AppDelegate.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <AVFoundation/AVFoundation.h>
-#import <mach/mach_time.h>
-#import <libkern/OSAtomic.h>
-
-static double __hostTicksToSeconds = 0.0;
-static double __secondsToHostTicks = 0.0;
 
 #define checkResult(result,operation) (_checkResult((result),(operation),strrchr(__FILE__, '/')+1,__LINE__))
 static inline BOOL _checkResult(OSStatus result, const char *operation, const char* file, int line) {
@@ -24,33 +19,18 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
     return YES;
 }
 
-static const int kMaxTimingEntries = 256;
-
-struct timing_entry_t { uint64_t timestamp; uint64_t start; uint64_t end; };
-
 @interface AppDelegate () {
-    struct timing_entry_t _timingEntries[kMaxTimingEntries];
-    volatile int32_t _timingEntriesHead;
-    volatile int32_t _timingEntriesTail;
     AudioUnit _audioUnit;
-    AudioUnit _iaaNodeUnit[2];
+    AudioUnit _iaaNodeUnit;
 }
 @property (nonatomic, strong) id observerToken;
 @end
 
 @implementation AppDelegate
 
-+(void)initialize {
-    mach_timebase_info_data_t tinfo;
-    mach_timebase_info(&tinfo);
-    __hostTicksToSeconds = ((double)tinfo.numer / tinfo.denom) * 1.0e-9;
-    __secondsToHostTicks = 1.0 / __hostTicksToSeconds;
-}
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [self setupAudioSystem];
     [self startAudioSystem];
-    [NSTimer scheduledTimerWithTimeInterval:0.01 target:self selector:@selector(pollTimingEntries) userInfo:nil repeats:YES];
     return YES;
 }
 
@@ -118,51 +98,31 @@ struct timing_entry_t { uint64_t timestamp; uint64_t start; uint64_t end; };
         }
     }];
     
-    AudioComponentDescription remoteDescs[2] = {
-        {
-            .componentType = kAudioUnitType_RemoteGenerator,
-            .componentManufacturer = 'atpx',
-            .componentSubType = 'test'
-        },
-        {
-            .componentType = kAudioUnitType_RemoteEffect,
-            .componentManufacturer = 'atpx',
-            .componentSubType = 'test'
-        }
+    AudioComponentDescription remoteDesc = {
+        .componentType = kAudioUnitType_RemoteGenerator,
+        .componentManufacturer = 'atpx',
+        .componentSubType = 'test'
     };
     
-    for ( int i=0; i<2; i++ ) {
-        
-        // Host audio unit
-        AudioComponent iaaComponent = AudioComponentFindNext(NULL, &remoteDescs[i]);
-        if ( !iaaComponent ) {
-            NSLog(@"IAA node not found");
-            return;
-        }
-        
-        checkResult(AudioComponentInstanceNew(iaaComponent, &_iaaNodeUnit[i]), "AudioComponentInstanceNew");
-        
-        checkResult(AudioUnitAddPropertyListener(_iaaNodeUnit[i], kAudioUnitProperty_IsInterAppConnected, audioUnitPropertyChange, (__bridge void*)self),
-                    "AudioUnitAddPropertyListener");
-        
-        checkResult(AudioUnitSetProperty(_iaaNodeUnit[i], kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &clientFormat, sizeof(clientFormat)),
-                    "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)");
-        
-        checkResult(AudioUnitSetProperty(_iaaNodeUnit[i], kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &framesPerSlice, sizeof(framesPerSlice)),
-                    "AudioUnitSetProperty(kAudioUnitProperty_MaximumFramesPerSlice");
+    // Host audio unit
+    AudioComponent iaaComponent = AudioComponentFindNext(NULL, &remoteDesc);
+    if ( !iaaComponent ) {
+        NSLog(@"IAA node not found");
+        return;
     }
     
-    AudioUnitConnection connection = {
-        .sourceAudioUnit = _iaaNodeUnit[0],
-        .sourceOutputNumber = 0,
-        .destInputNumber = 1
-    };
-    checkResult(AudioUnitSetProperty(_iaaNodeUnit[1], kAudioUnitProperty_MakeConnection, kAudioUnitScope_Global, 0, &connection, sizeof(connection)), "AudioUnitSetProperty");
+    checkResult(AudioComponentInstanceNew(iaaComponent, &_iaaNodeUnit), "AudioComponentInstanceNew");
     
+    checkResult(AudioUnitAddPropertyListener(_iaaNodeUnit, kAudioUnitProperty_IsInterAppConnected, audioUnitPropertyChange, (__bridge void*)self),
+                "AudioUnitAddPropertyListener");
     
-    for ( int i=0; i<2; i++ ) {
-        checkResult(AudioUnitInitialize(_iaaNodeUnit[i]), "AudioUnitInitialize");
-    }
+    checkResult(AudioUnitSetProperty(_iaaNodeUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &clientFormat, sizeof(clientFormat)),
+                "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)");
+    
+    checkResult(AudioUnitSetProperty(_iaaNodeUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &framesPerSlice, sizeof(framesPerSlice)),
+                "AudioUnitSetProperty(kAudioUnitProperty_MaximumFramesPerSlice");
+    
+    checkResult(AudioUnitInitialize(_iaaNodeUnit), "AudioUnitInitialize");
 }
 
 - (void)teardownAudioSystem {
@@ -171,11 +131,9 @@ struct timing_entry_t { uint64_t timestamp; uint64_t start; uint64_t end; };
         _audioUnit = NULL;
     }
     
-    for ( int i=0; i<2; i++ ) {
-        if ( _iaaNodeUnit[i] ) {
-            checkResult(AudioUnitUninitialize(_iaaNodeUnit[i]), "AudioUnitUninitialize");
-            checkResult(AudioComponentInstanceDispose(_iaaNodeUnit[i]), "AudioComponentInstanceDispose");
-        }
+    if ( _iaaNodeUnit ) {
+        checkResult(AudioUnitUninitialize(_iaaNodeUnit), "AudioUnitUninitialize");
+        checkResult(AudioComponentInstanceDispose(_iaaNodeUnit), "AudioComponentInstanceDispose");
     }
     
     if ( _observerToken ) {
@@ -231,44 +189,19 @@ static void audioUnitPropertyChange(void *inRefCon, AudioUnit inUnit, AudioUnitP
     audioDescription.mFramesPerPacket   = 1;
     audioDescription.mBytesPerFrame     = sizeof(float);
     audioDescription.mBitsPerChannel    = 8 * sizeof(float);
-    audioDescription.mSampleRate        = 44100.0;
+    audioDescription.mSampleRate        = [AVAudioSession sharedInstance].sampleRate;
     return audioDescription;
 }
 
 static OSStatus audioUnitRenderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
-    
     __unsafe_unretained AppDelegate * THIS = (__bridge AppDelegate*)inRefCon;
     
-    uint64_t start = mach_absolute_time();
-    
-    if ( THIS->_iaaNodeUnit[1] ) {
+    if ( THIS->_iaaNodeUnit ) {
         // Draw from the node
-        checkResult(AudioUnitRender(THIS->_iaaNodeUnit[1], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData), "AudioUnitRender");
-    }
-    
-    uint64_t end = mach_absolute_time();
-    
-    int32_t head = THIS->_timingEntriesHead;
-    int32_t tail = THIS->_timingEntriesTail;
-    if ( (head+1)%kMaxTimingEntries == tail ) {
-        NSLog(@"Timing buffer full");
-    } else {
-        THIS->_timingEntries[head] = (struct timing_entry_t){ .timestamp = inTimeStamp->mHostTime, .start = start, .end = end };
-        OSAtomicCompareAndSwap32Barrier(head, (head+1) % kMaxTimingEntries, &THIS->_timingEntriesHead);
+        checkResult(AudioUnitRender(THIS->_iaaNodeUnit, ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData), "AudioUnitRender");
     }
     
     return noErr;
-}
-
-- (void)pollTimingEntries {
-    for ( int i=_timingEntriesTail; i != _timingEntriesHead; i = (i+1)%kMaxTimingEntries ) {
-        NSLog(@"%lf: render start %lf, end %lf, duration %lf ms",
-              _timingEntries[i].timestamp * __hostTicksToSeconds,
-              _timingEntries[i].start * __hostTicksToSeconds,
-              _timingEntries[i].end * __hostTicksToSeconds,
-              (_timingEntries[i].end - _timingEntries[i].start) * __hostTicksToSeconds * 1000.0);
-        OSAtomicCompareAndSwap32Barrier(i, (i+1)%kMaxTimingEntries, &_timingEntriesTail);
-    }
 }
 
 @end
