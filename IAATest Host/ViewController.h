@@ -8,6 +8,13 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+@class AppDelegate;
 
+@interface ViewController : UIViewController
+- (IBAction)connect;
+
+@property (weak, nonatomic) AppDelegate * appDelegate;
+@property (strong, nonatomic) IBOutlet UIButton *connectButton;
+@property (strong, nonatomic) IBOutlet UIActivityIndicatorView *indicator;
+@property (strong, nonatomic) IBOutlet UILabel *label;
 @end

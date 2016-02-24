@@ -7,6 +7,10 @@
 //
 
 #import "ViewController.h"
+#import "AppDelegate.h"
+
+static void * kConnectedChanged = &kConnectedChanged;
+static void * kWorkingChanged = &kWorkingChanged;
 
 @interface ViewController ()
 
@@ -14,16 +18,51 @@
 
 @implementation ViewController
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+    
+    [self.connectButton setTitle:@"Connect" forState:UIControlStateNormal];
+    [self.connectButton setTitle:@"Disconnect" forState:UIControlStateSelected];
+    
+    [self updateState];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (void)setAppDelegate:(AppDelegate *)appDelegate {
+    if ( _appDelegate ) {
+        [_appDelegate removeObserver:self forKeyPath:@"connected"];
+        [_appDelegate removeObserver:self forKeyPath:@"working"];
+    }
+    
+    _appDelegate = appDelegate;
+    
+    if ( _appDelegate ) {
+        [_appDelegate addObserver:self forKeyPath:@"connected" options:0 context:kConnectedChanged];
+        [_appDelegate addObserver:self forKeyPath:@"working" options:0 context:kWorkingChanged];
+        [self updateState];
+    }
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if ( context == kConnectedChanged || context == kWorkingChanged ) {
+        [self updateState];
+    } else {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
+}
+
+- (void)updateState {
+    self.connectButton.selected = self.appDelegate.connected;
+    self.label.text = self.appDelegate.connected ? (self.appDelegate.working ? @"Connecting" : @"Connected")
+                                                 : (self.appDelegate.working ? @"Disconnecting" : @"Disconnected");
+    self.connectButton.hidden = self.appDelegate.working;
+    self.indicator.hidden = !self.appDelegate.working;
+    if ( !self.indicator.hidden) {
+        [self.indicator startAnimating];
+    }
+}
+
+- (IBAction)connect {
+    self.appDelegate.connected = !self.appDelegate.connected;
 }
 
 @end

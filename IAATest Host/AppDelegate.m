@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "ViewController.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <AVFoundation/AVFoundation.h>
 
@@ -19,6 +20,8 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
     return YES;
 }
 
+static const UInt32 kMaxFramesPerSlice = 4096;
+
 @interface AppDelegate () {
     AudioUnit _audioUnit;
     AudioUnit _iaaNodeUnit;
@@ -29,6 +32,10 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+    ViewController * vc = (ViewController*)application.windows[0].rootViewController;
+    vc.appDelegate = self;
+    
     [self setupAudioSystem];
     [self startAudioSystem];
     return YES;
@@ -75,8 +82,7 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
     checkResult(AudioUnitSetProperty(_audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, 0, &rcbs, sizeof(rcbs)),
                 "kAudioUnitProperty_SetRenderCallback");
     
-    UInt32 framesPerSlice = 4096;
-    checkResult(AudioUnitSetProperty(_audioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &framesPerSlice, sizeof(framesPerSlice)),
+    checkResult(AudioUnitSetProperty(_audioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &kMaxFramesPerSlice, sizeof(kMaxFramesPerSlice)),
                 "AudioUnitSetProperty(kAudioUnitProperty_MaximumFramesPerSlice");
     
     // Initialize the audio unit
@@ -98,31 +104,79 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
         }
     }];
     
-    AudioComponentDescription remoteDesc = {
-        .componentType = kAudioUnitType_RemoteGenerator,
-        .componentManufacturer = 'atpx',
-        .componentSubType = 'test'
-    };
+    self.connected = YES;
+}
+
+- (void)setConnected:(BOOL)connected {
+    if ( _connected == connected ) return;
     
-    // Host audio unit
-    AudioComponent iaaComponent = AudioComponentFindNext(NULL, &remoteDesc);
-    if ( !iaaComponent ) {
-        NSLog(@"IAA node not found");
-        return;
+    _connected = connected;
+    
+    if ( _connected ) {
+        self.working = YES;
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0), ^{
+            AudioComponentDescription remoteDesc = {
+                .componentType = kAudioUnitType_RemoteGenerator,
+                .componentManufacturer = 'atpx',
+                .componentSubType = 'test'
+            };
+            
+            // Host audio unit
+            AudioComponent iaaComponent = AudioComponentFindNext(NULL, &remoteDesc);
+            if ( !iaaComponent ) {
+                NSLog(@"IAA node not found");
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.connected = NO;
+                    self.working = NO;
+                });
+                return;
+            }
+            
+            AudioUnit unit;
+            AudioStreamBasicDescription clientFormat = [AppDelegate nonInterleavedFloatStereoAudioDescription];
+            
+            BOOL result =
+                checkResult(AudioComponentInstanceNew(iaaComponent, &unit), "AudioComponentInstanceNew") &&
+                checkResult(AudioUnitAddPropertyListener(unit, kAudioUnitProperty_IsInterAppConnected, audioUnitPropertyChange, (__bridge void*)self),
+                        "AudioUnitAddPropertyListener") &&
+                checkResult(AudioUnitSetProperty(unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &clientFormat, sizeof(clientFormat)),
+                        "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)") &&
+                checkResult(AudioUnitSetProperty(unit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &kMaxFramesPerSlice, sizeof(kMaxFramesPerSlice)),
+                        "AudioUnitSetProperty(kAudioUnitProperty_MaximumFramesPerSlice") &&
+                checkResult(AudioUnitInitialize(unit), "AudioUnitInitialize");
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if ( !self.working || _iaaNodeUnit ) {
+                    if ( result ) {
+                        checkResult(AudioUnitUninitialize(unit), "AudioUnitUninitialize");
+                        checkResult(AudioComponentInstanceDispose(unit), "AudioComponentInstanceDispose");
+                    }
+                    return;
+                }
+                self.working = NO;
+                if ( result ) {
+                    _iaaNodeUnit = unit;
+                } else {
+                    self.connected = NO;
+                }
+            });
+        });
+    } else {
+        if ( _iaaNodeUnit ) {
+            self.working = YES;
+            AudioUnit unit = _iaaNodeUnit;
+            _iaaNodeUnit = NULL;
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0), ^{
+                checkResult(AudioUnitUninitialize(unit), "AudioUnitUninitialize");
+                checkResult(AudioComponentInstanceDispose(unit), "AudioComponentInstanceDispose");
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.working = NO;
+                });
+            });
+        } else {
+            self.working = NO;
+        }
     }
-    
-    checkResult(AudioComponentInstanceNew(iaaComponent, &_iaaNodeUnit), "AudioComponentInstanceNew");
-    
-    checkResult(AudioUnitAddPropertyListener(_iaaNodeUnit, kAudioUnitProperty_IsInterAppConnected, audioUnitPropertyChange, (__bridge void*)self),
-                "AudioUnitAddPropertyListener");
-    
-    checkResult(AudioUnitSetProperty(_iaaNodeUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &clientFormat, sizeof(clientFormat)),
-                "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)");
-    
-    checkResult(AudioUnitSetProperty(_iaaNodeUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &framesPerSlice, sizeof(framesPerSlice)),
-                "AudioUnitSetProperty(kAudioUnitProperty_MaximumFramesPerSlice");
-    
-    checkResult(AudioUnitInitialize(_iaaNodeUnit), "AudioUnitInitialize");
 }
 
 - (void)teardownAudioSystem {
@@ -195,6 +249,11 @@ static void audioUnitPropertyChange(void *inRefCon, AudioUnit inUnit, AudioUnitP
 
 static OSStatus audioUnitRenderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
     __unsafe_unretained AppDelegate * THIS = (__bridge AppDelegate*)inRefCon;
+    
+    // Clear buffer
+    for ( int i=0; i<ioData->mNumberBuffers; i++ ) {
+        memset(ioData->mBuffers[i].mData, 0, ioData->mBuffers[i].mDataByteSize);
+    }
     
     if ( THIS->_iaaNodeUnit ) {
         // Draw from the node
