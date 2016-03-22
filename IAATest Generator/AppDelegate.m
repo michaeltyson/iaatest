@@ -303,17 +303,22 @@ static void audioUnitStreamFormatChanged(void *inRefCon, AudioUnit inUnit, Audio
 static OSStatus audioUnitRenderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
     __unsafe_unretained AppDelegate * THIS = (__bridge AppDelegate*)inRefCon;
     
-    // Quick sin-esque oscillator
-    const float oscillatorFrequency = 400.0;
-    static float oscillatorPosition = 0.0;
-    float oscillatorRate = oscillatorFrequency / THIS->_audioDescription.mSampleRate;
-    for ( int i=0; i<inNumberFrames; i++ ) {
-        float x = oscillatorPosition;
-        x *= x; x -= 1.0; x *= x; x -= 0.5; x *= 0.4;
-        oscillatorPosition += oscillatorRate;
-        if ( oscillatorPosition > 1.0 ) oscillatorPosition -= 2.0;
-        ((float*)ioData->mBuffers[0].mData)[i] = x;
-        ((float*)ioData->mBuffers[1].mData)[i] = x;
+    if ( THIS->_oscillator ) {
+        // Quick sin-esque oscillator
+        const float oscillatorFrequency = 400.0;
+        static float oscillatorPosition = 0.0;
+        float oscillatorRate = oscillatorFrequency / THIS->_audioDescription.mSampleRate;
+        for ( int i=0; i<inNumberFrames; i++ ) {
+            float x = oscillatorPosition;
+            x *= x; x -= 1.0; x *= x; x -= 0.5; x *= 0.4;
+            oscillatorPosition += oscillatorRate;
+            if ( oscillatorPosition > 1.0 ) oscillatorPosition -= 2.0;
+            ((float*)ioData->mBuffers[0].mData)[i] = x;
+            ((float*)ioData->mBuffers[1].mData)[i] = x;
+        }
+    } else {
+        // Draw from the system audio input
+        checkResult(AudioUnitRender(THIS->_audioUnit, ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData), "AudioUnitRender");
     }
     
     return noErr;
