@@ -25,6 +25,7 @@ static const UInt32 kMaxFramesPerSlice = 4096;
 @interface AppDelegate () {
     AudioUnit _audioUnit;
     AudioUnit _iaaNodeUnit;
+    AudioStreamBasicDescription _audioDescription;
 }
 @property (nonatomic, strong) id observerToken;
 @end
@@ -73,8 +74,17 @@ static const UInt32 kMaxFramesPerSlice = 4096;
     checkResult(AudioComponentInstanceNew(inputComponent, &_audioUnit), "AudioComponentInstanceNew");
 
     // Set the stream formats
-    AudioStreamBasicDescription clientFormat = [AppDelegate nonInterleavedFloatStereoAudioDescription];
-    checkResult(AudioUnitSetProperty(_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &clientFormat, sizeof(clientFormat)),
+    memset(&_audioDescription, 0, sizeof(_audioDescription));
+    _audioDescription.mFormatID          = kAudioFormatLinearPCM;
+    _audioDescription.mFormatFlags       = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked | kAudioFormatFlagIsNonInterleaved;
+    _audioDescription.mChannelsPerFrame  = 2;
+    _audioDescription.mBytesPerPacket    = sizeof(float);
+    _audioDescription.mFramesPerPacket   = 1;
+    _audioDescription.mBytesPerFrame     = sizeof(float);
+    _audioDescription.mBitsPerChannel    = 8 * sizeof(float);
+    _audioDescription.mSampleRate        = [AVAudioSession sharedInstance].sampleRate;
+    
+    checkResult(AudioUnitSetProperty(_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &_audioDescription, sizeof(_audioDescription)),
                 "kAudioUnitProperty_StreamFormat");
     
     // Set the render callback
@@ -104,11 +114,22 @@ static const UInt32 kMaxFramesPerSlice = 4096;
         }
     }];
     
+    // Watch for sample rate changes
+    checkResult(AudioUnitAddPropertyListener(_audioUnit, kAudioUnitProperty_StreamFormat, audioUnitStreamFormatChanged, (__bridge void*)self), "AudioUnitAddPropertyListener");
+    
     self.connected = YES;
 }
 
 - (void)setConnected:(BOOL)connected {
-    if ( _connected == connected ) return;
+    [self setConnected:connected withCompletionBlock:nil];
+}
+
+- (void)setConnected:(BOOL)connected withCompletionBlock:(void(^)())block {
+    
+    if ( _connected == connected ) {
+        if ( block ) block();
+        return;
+    }
     
     _connected = connected;
     
@@ -128,18 +149,18 @@ static const UInt32 kMaxFramesPerSlice = 4096;
                 dispatch_async(dispatch_get_main_queue(), ^{
                     self.connected = NO;
                     self.working = NO;
+                    if ( block ) block();
                 });
                 return;
             }
             
             AudioUnit unit;
-            AudioStreamBasicDescription clientFormat = [AppDelegate nonInterleavedFloatStereoAudioDescription];
             
             BOOL result =
                 checkResult(AudioComponentInstanceNew(iaaComponent, &unit), "AudioComponentInstanceNew") &&
                 checkResult(AudioUnitAddPropertyListener(unit, kAudioUnitProperty_IsInterAppConnected, audioUnitPropertyChange, (__bridge void*)self),
                         "AudioUnitAddPropertyListener") &&
-                checkResult(AudioUnitSetProperty(unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &clientFormat, sizeof(clientFormat)),
+                checkResult(AudioUnitSetProperty(unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &_audioDescription, sizeof(_audioDescription)),
                         "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)") &&
                 checkResult(AudioUnitSetProperty(unit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &kMaxFramesPerSlice, sizeof(kMaxFramesPerSlice)),
                         "AudioUnitSetProperty(kAudioUnitProperty_MaximumFramesPerSlice") &&
@@ -151,14 +172,15 @@ static const UInt32 kMaxFramesPerSlice = 4096;
                         checkResult(AudioUnitUninitialize(unit), "AudioUnitUninitialize");
                         checkResult(AudioComponentInstanceDispose(unit), "AudioComponentInstanceDispose");
                     }
-                    return;
-                }
-                self.working = NO;
-                if ( result ) {
-                    _iaaNodeUnit = unit;
                 } else {
-                    self.connected = NO;
+                    self.working = NO;
+                    if ( result ) {
+                        _iaaNodeUnit = unit;
+                    } else {
+                        self.connected = NO;
+                    }
                 }
+                if ( block ) block();
             });
         });
     } else {
@@ -171,10 +193,12 @@ static const UInt32 kMaxFramesPerSlice = 4096;
                 checkResult(AudioComponentInstanceDispose(unit), "AudioComponentInstanceDispose");
                 dispatch_async(dispatch_get_main_queue(), ^{
                     self.working = NO;
+                    if ( block ) block();
                 });
             });
         } else {
             self.working = NO;
+            if ( block ) block();
         }
     }
 }
@@ -232,19 +256,34 @@ static void audioUnitPropertyChange(void *inRefCon, AudioUnit inUnit, AudioUnitP
     }
 }
 
-
-+ (AudioStreamBasicDescription)nonInterleavedFloatStereoAudioDescription {
-    AudioStreamBasicDescription audioDescription;
-    memset(&audioDescription, 0, sizeof(audioDescription));
-    audioDescription.mFormatID          = kAudioFormatLinearPCM;
-    audioDescription.mFormatFlags       = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked | kAudioFormatFlagIsNonInterleaved;
-    audioDescription.mChannelsPerFrame  = 2;
-    audioDescription.mBytesPerPacket    = sizeof(float);
-    audioDescription.mFramesPerPacket   = 1;
-    audioDescription.mBytesPerFrame     = sizeof(float);
-    audioDescription.mBitsPerChannel    = 8 * sizeof(float);
-    audioDescription.mSampleRate        = [AVAudioSession sharedInstance].sampleRate;
-    return audioDescription;
+static void audioUnitStreamFormatChanged(void *inRefCon, AudioUnit inUnit, AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement) {
+    __unsafe_unretained AppDelegate *THIS = (__bridge AppDelegate*)inRefCon;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Read new format
+        AudioStreamBasicDescription newFormat;
+        UInt32 size = sizeof(newFormat);
+        checkResult(AudioUnitGetProperty(THIS->_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &newFormat, &size),
+                    "kAudioUnitProperty_StreamFormat");
+        
+        if ( fabs(THIS->_audioDescription.mSampleRate - newFormat.mSampleRate) > DBL_EPSILON ) {
+            NSLog(@"Stream format changed from %lf to %lf", THIS->_audioDescription.mSampleRate, newFormat.mSampleRate);
+            THIS->_audioDescription.mSampleRate = newFormat.mSampleRate;
+            
+            if ( THIS->_connected && THIS->_iaaNodeUnit ) {
+                // Reconnect
+                [THIS setConnected:NO withCompletionBlock:^{
+                    // Set new format
+                    checkResult(AudioUnitSetProperty(THIS->_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &THIS->_audioDescription, sizeof(THIS->_audioDescription)),
+                                "kAudioUnitProperty_StreamFormat");
+                    
+                    [THIS setConnected:YES];
+                }];
+            } else {
+                checkResult(AudioUnitSetProperty(THIS->_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &THIS->_audioDescription, sizeof(THIS->_audioDescription)),
+                            "kAudioUnitProperty_StreamFormat");
+            }
+        }
+    });
 }
 
 static OSStatus audioUnitRenderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
