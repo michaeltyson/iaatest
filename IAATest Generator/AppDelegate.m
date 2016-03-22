@@ -19,9 +19,12 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
     return YES;
 }
 
+#define USE_HARDWARE_SAMPLE_RATE
+
+
 @interface AppDelegate () {
     AudioUnit _audioUnit;
-    double _sampleRate;
+    AudioStreamBasicDescription _audioDescription;
 }
 @property (nonatomic, strong) id observerToken;
 @end
@@ -74,9 +77,21 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
     checkResult(AudioComponentInstanceNew(inputComponent, &_audioUnit), "AudioComponentInstanceNew");
 
     // Set the stream formats
-    AudioStreamBasicDescription clientFormat = [AppDelegate nonInterleavedFloatStereoAudioDescription];
-    _sampleRate = clientFormat.mSampleRate;
-    checkResult(AudioUnitSetProperty(_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &clientFormat, sizeof(clientFormat)),
+    memset(&_audioDescription, 0, sizeof(_audioDescription));
+    _audioDescription.mFormatID          = kAudioFormatLinearPCM;
+    _audioDescription.mFormatFlags       = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked | kAudioFormatFlagIsNonInterleaved;
+    _audioDescription.mChannelsPerFrame  = 2;
+    _audioDescription.mBytesPerPacket    = sizeof(float);
+    _audioDescription.mFramesPerPacket   = 1;
+    _audioDescription.mBytesPerFrame     = sizeof(float);
+    _audioDescription.mBitsPerChannel    = 8 * sizeof(float);
+#ifdef USE_HARDWARE_SAMPLE_RATE
+    _audioDescription.mSampleRate        = [AVAudioSession sharedInstance].sampleRate;
+#else
+    _audioDescription.mSampleRate        = 44100.0;
+#endif
+    
+    checkResult(AudioUnitSetProperty(_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &_audioDescription, sizeof(_audioDescription)),
                 "kAudioUnitProperty_StreamFormat");
     
     // Set the render callback
@@ -109,6 +124,11 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
     
     // Watch for IAA connections
     checkResult(AudioUnitAddPropertyListener(_audioUnit, kAudioUnitProperty_IsInterAppConnected, audioUnitPropertyChange, (__bridge void*)self), "AudioUnitAddPropertyListener");
+    
+#ifdef USE_HARDWARE_SAMPLE_RATE
+    // Watch for stream format changes
+    checkResult(AudioUnitAddPropertyListener(_audioUnit, kAudioUnitProperty_StreamFormat, audioUnitStreamFormatChanged, (__bridge void*)self), "AudioUnitAddPropertyListener");
+#endif
     
     // Publish audio unit
     AudioComponentDescription remoteDesc = {
@@ -170,6 +190,29 @@ static void audioUnitPropertyChange(void *inRefCon, AudioUnit inUnit, AudioUnitP
     [THIS updateAudioUnitStatus];
 }
 
+#ifdef USE_HARDWARE_SAMPLE_RATE
+static void audioUnitStreamFormatChanged(void *inRefCon, AudioUnit inUnit, AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement) {
+    __unsafe_unretained AppDelegate *THIS = (__bridge AppDelegate*)inRefCon;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Read new format
+        AudioStreamBasicDescription newFormat;
+        UInt32 size = sizeof(newFormat);
+        checkResult(AudioUnitGetProperty(THIS->_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &newFormat, &size),
+                    "kAudioUnitProperty_StreamFormat");
+        
+        if ( fabs(THIS->_audioDescription.mSampleRate - newFormat.mSampleRate) > DBL_EPSILON ) {
+            NSLog(@"Stream format changed from %lf to %lf",
+                  THIS->_audioDescription.mSampleRate, newFormat.mSampleRate);
+            
+            // Set new format
+            THIS->_audioDescription.mSampleRate = newFormat.mSampleRate;
+            checkResult(AudioUnitSetProperty(THIS->_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &THIS->_audioDescription, sizeof(THIS->_audioDescription)),
+                        "kAudioUnitProperty_StreamFormat");
+        }
+    });
+}
+#endif
+
 - (void)updateAudioUnitStatus {
     UInt32 unitConnected;
     UInt32 size = sizeof(unitConnected);
@@ -218,27 +261,13 @@ static void audioUnitPropertyChange(void *inRefCon, AudioUnit inUnit, AudioUnitP
     }
 }
 
-+ (AudioStreamBasicDescription)nonInterleavedFloatStereoAudioDescription {
-    AudioStreamBasicDescription audioDescription;
-    memset(&audioDescription, 0, sizeof(audioDescription));
-    audioDescription.mFormatID          = kAudioFormatLinearPCM;
-    audioDescription.mFormatFlags       = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked | kAudioFormatFlagIsNonInterleaved;
-    audioDescription.mChannelsPerFrame  = 2;
-    audioDescription.mBytesPerPacket    = sizeof(float);
-    audioDescription.mFramesPerPacket   = 1;
-    audioDescription.mBytesPerFrame     = sizeof(float);
-    audioDescription.mBitsPerChannel    = 8 * sizeof(float);
-    audioDescription.mSampleRate        = [AVAudioSession sharedInstance].sampleRate;
-    return audioDescription;
-}
-
 static OSStatus audioUnitRenderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
     __unsafe_unretained AppDelegate * THIS = (__bridge AppDelegate*)inRefCon;
     
     // Quick sin-esque oscillator
     const float oscillatorFrequency = 400.0;
     static float oscillatorPosition = 0.0;
-    float oscillatorRate = oscillatorFrequency / THIS->_sampleRate;
+    float oscillatorRate = oscillatorFrequency / THIS->_audioDescription.mSampleRate;
     for ( int i=0; i<inNumberFrames; i++ ) {
         float x = oscillatorPosition;
         x *= x; x -= 1.0; x *= x; x -= 0.5; x *= 0.4;
