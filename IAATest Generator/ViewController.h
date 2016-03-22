@@ -9,5 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface ViewController : UIViewController
-
+- (IBAction)switchOscillator:(UISwitch *)sender;
+@property (strong, nonatomic) IBOutlet UISwitch *oscillatorSwitch;
 @end

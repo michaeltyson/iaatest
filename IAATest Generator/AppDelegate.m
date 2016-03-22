@@ -32,6 +32,7 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    _oscillator = YES;
     [self setupAudioSystem];
     [self startAudioSystem];
     return YES;
@@ -52,8 +53,10 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
 - (void)setupAudioSystem {
     
     NSError *error = nil;
-    if ( ![[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&error] ) {
+    if ( ![[AVAudioSession sharedInstance] setCategory:_oscillator ? AVAudioSessionCategoryPlayback : AVAudioSessionCategoryPlayAndRecord
+                                           withOptions:AVAudioSessionCategoryOptionMixWithOthers | (_oscillator ? 0 : AVAudioSessionCategoryOptionDefaultToSpeaker) error:&error] ) {
         NSLog(@"Couldn't set audio session category: %@", error);
+        return;
     }
     
     if ( ![[AVAudioSession sharedInstance] setPreferredIOBufferDuration:(128.0/44100.0) error:&error] ) {
@@ -75,7 +78,12 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
     
     AudioComponent inputComponent = AudioComponentFindNext(NULL, &desc);
     checkResult(AudioComponentInstanceNew(inputComponent, &_audioUnit), "AudioComponentInstanceNew");
-
+    
+    // Enable/disable input
+    UInt32 enableFlag = _oscillator ? 0 : 1;
+    checkResult(AudioUnitSetProperty(_audioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableFlag, sizeof(enableFlag)),
+                "kAudioOutputUnitProperty_EnableIO");
+    
     // Set the stream formats
     memset(&_audioDescription, 0, sizeof(_audioDescription));
     _audioDescription.mFormatID          = kAudioFormatLinearPCM;
@@ -92,6 +100,8 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
 #endif
     
     checkResult(AudioUnitSetProperty(_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &_audioDescription, sizeof(_audioDescription)),
+                "kAudioUnitProperty_StreamFormat");
+    checkResult(AudioUnitSetProperty(_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &_audioDescription, sizeof(_audioDescription)),
                 "kAudioUnitProperty_StreamFormat");
     
     // Set the render callback
@@ -171,6 +181,32 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
     return YES;
 }
 
+- (void)setOscillator:(BOOL)oscillator {
+    if( _oscillator == oscillator ) return;
+    
+    _oscillator = oscillator;
+    
+    NSLog(@"Changed mode to %@", _oscillator ? @"oscillator" : @"mic input");
+    
+    [self stopAudioSystem];
+    
+    NSError *error = nil;
+    if ( ![[AVAudioSession sharedInstance] setCategory:_oscillator ? AVAudioSessionCategoryPlayback : AVAudioSessionCategoryPlayAndRecord
+                                           withOptions:AVAudioSessionCategoryOptionMixWithOthers | (_oscillator ? 0 : AVAudioSessionCategoryOptionDefaultToSpeaker) error:&error] ) {
+        NSLog(@"Couldn't set audio session category: %@", error);
+        return;
+    }
+    
+    // Enable/disable input bus
+    checkResult(AudioUnitUninitialize(_audioUnit), "AudioUnitUninitialize");
+    UInt32 enableFlag = _oscillator ? 0 : 1;
+    checkResult(AudioUnitSetProperty(_audioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableFlag, sizeof(enableFlag)),
+                "kAudioOutputUnitProperty_EnableIO");
+    checkResult(AudioUnitInitialize(_audioUnit), "AudioUnitInitialize");
+    
+    [self startAudioSystem];
+}
+
 static void audioUnitPropertyChange(void *inRefCon, AudioUnit inUnit, AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement) {
 	__unsafe_unretained AppDelegate *THIS = (__bridge AppDelegate*)inRefCon;
     
@@ -208,6 +244,8 @@ static void audioUnitStreamFormatChanged(void *inRefCon, AudioUnit inUnit, Audio
             THIS->_audioDescription.mSampleRate = newFormat.mSampleRate;
             checkResult(AudioUnitSetProperty(THIS->_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &THIS->_audioDescription, sizeof(THIS->_audioDescription)),
                         "kAudioUnitProperty_StreamFormat");
+            checkResult(AudioUnitSetProperty(THIS->_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &THIS->_audioDescription, sizeof(THIS->_audioDescription)),
+                        "kAudioUnitProperty_StreamFormat");
         }
     });
 }
@@ -232,7 +270,8 @@ static void audioUnitStreamFormatChanged(void *inRefCon, AudioUnit inUnit, Audio
     
     if ( unitShouldBeRunning ) {
         NSError *error = nil;
-        if ( ![[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&error] ) {
+        if ( ![[AVAudioSession sharedInstance] setCategory:_oscillator ? AVAudioSessionCategoryPlayback : AVAudioSessionCategoryPlayAndRecord
+                                               withOptions:AVAudioSessionCategoryOptionMixWithOthers | (_oscillator ? 0 : AVAudioSessionCategoryOptionDefaultToSpeaker) error:&error] ) {
             NSLog(@"Couldn't set audio session category: %@", error);
             return;
         }

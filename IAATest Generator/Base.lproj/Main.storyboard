@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="14C109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15D21" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -16,12 +16,41 @@
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="JZc-BH-HKH">
+                                <rect key="frame" x="276" y="284.5" width="51" height="31"/>
+                                <connections>
+                                    <action selector="switchOscillator:" destination="BYZ-38-t0r" eventType="valueChanged" id="Kap-qr-enk"/>
+                                </connections>
+                            </switch>
+                            <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" image="Mic" translatesAutoresizingMaskIntoConstraints="NO" id="zrp-Xa-QEN">
+                                <rect key="frame" x="243" y="284.5" width="18" height="31"/>
+                            </imageView>
+                            <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" image="Osc" translatesAutoresizingMaskIntoConstraints="NO" id="mqG-yG-5Js">
+                                <rect key="frame" x="338" y="288.5" width="24" height="23"/>
+                            </imageView>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="mqG-yG-5Js" firstAttribute="leading" secondItem="JZc-BH-HKH" secondAttribute="trailing" constant="13" id="2NC-r8-qTn"/>
+                            <constraint firstItem="JZc-BH-HKH" firstAttribute="leading" secondItem="zrp-Xa-QEN" secondAttribute="trailing" constant="15" id="E8k-R1-MDb"/>
+                            <constraint firstItem="JZc-BH-HKH" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="I9a-qN-sBd"/>
+                            <constraint firstItem="mqG-yG-5Js" firstAttribute="centerY" secondItem="JZc-BH-HKH" secondAttribute="centerY" id="fh0-cP-gCz"/>
+                            <constraint firstItem="JZc-BH-HKH" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="xWG-cQ-dWR"/>
+                            <constraint firstItem="zrp-Xa-QEN" firstAttribute="centerY" secondItem="JZc-BH-HKH" secondAttribute="centerY" id="zTh-qZ-Cx1"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="oscillatorSwitch" destination="JZc-BH-HKH" id="465-0C-12f"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="379.6875" y="198.6328125"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="Mic" width="18" height="31"/>
+        <image name="Osc" width="24" height="23"/>
+    </resources>
 </document>
